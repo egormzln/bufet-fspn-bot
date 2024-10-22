@@ -31,13 +31,15 @@ main_router = Router(name='main_handlers')
 # # MongoDB connection URI
 # mongo_uri = f"mongodb://{MONGO_USER}:{MONGO_PASSWORD}@mongodb:27017/{MONGO_DB_NAME}"
 
-db_client = motor.motor_asyncio.AsyncIOMotorClient("localhost", 27017)
-bot_db = db_client["bufet_fspn"]
-users_collection = bot_db["users"]
+try:
+    db_client = motor.motor_asyncio.AsyncIOMotorClient("localhost", 27017)
+    bot_db = db_client["bufet_fspn"]
+    users_collection = bot_db["users"]
+except:
+    print('No database')
 
 
 async def main() -> None:
-    await users_collection.create_index('tg_id', unique=True)
     logging.basicConfig(
         level=logging.INFO,
         format='%(filename)s:%(lineno)d #%(levelname)-8s '
@@ -45,6 +47,12 @@ async def main() -> None:
         stream=sys.stdout
     )
     logger.info('Starting Bot...')
+
+    try:
+        await users_collection.create_index('tg_id', unique=True)
+    except:
+        logger.info('No database')
+
     dp = Dispatcher()
     dp.include_router(main_handlers.main_router)
     await bot.delete_webhook(drop_pending_updates=True)
