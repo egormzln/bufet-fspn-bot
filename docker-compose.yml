@@ -1,0 +1,39 @@
+version: '3.9'
+
+services:
+  mongo:
+    image: mongo:8.0.1
+    container_name: mongo-db
+    restart: on-failure
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      retries: 5
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mongo
+  app:
+    container_name: bufet-fspn-bot
+    build: .
+    restart: always
+    depends_on:
+      - mongo
+      - mongo-express
+
+volumes:
+  mongo-data:

@@ -21,7 +21,9 @@ admin_users = {
 config = load_config()
 
 bot = Bot(token=config.tg_bot.token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-#
+
+main_router = Router(name='main_handlers')
+
 # MONGO_USER = os.getenv('MONGO_INITDB_ROOT_USERNAME')
 # MONGO_PASSWORD = os.getenv('MONGO_INITDB_ROOT_PASSWORD')
 # MONGO_DB_NAME = os.getenv('MONGO_DB_NAME')
