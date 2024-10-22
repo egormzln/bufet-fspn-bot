@@ -21,12 +21,17 @@ admin_users = {
 config = load_config()
 
 bot = Bot(token=config.tg_bot.token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+#
+# MONGO_USER = os.getenv('MONGO_INITDB_ROOT_USERNAME')
+# MONGO_PASSWORD = os.getenv('MONGO_INITDB_ROOT_PASSWORD')
+# MONGO_DB_NAME = os.getenv('MONGO_DB_NAME')
+#
+# # MongoDB connection URI
+# mongo_uri = f"mongodb://{MONGO_USER}:{MONGO_PASSWORD}@mongodb:27017/{MONGO_DB_NAME}"
 
 db_client = motor.motor_asyncio.AsyncIOMotorClient("localhost", 27017)
 bot_db = db_client["bufet_fspn"]
 users_collection = bot_db["users"]
-
-main_router = Router(name='main_handlers')
 
 
 async def main() -> None:
