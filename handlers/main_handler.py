@@ -1,18 +1,16 @@
-from dataclasses import replace
 from datetime import datetime
 
-import pymongo
-from aiogram import Router
-from aiogram.types import Message, CallbackQuery, ReplyKeyboardMarkup, KeyboardButton, InputFile, FSInputFile, \
-    InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
-from aiogram.filters import Command, CommandStart, StateFilter
 from aiogram import F
-import random
-
+from aiogram import Router
+from aiogram.filters import Command, CommandStart
+from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InputMediaPhoto
 from aiogram.utils.chat_action import ChatActionSender
-from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from main import admin_users, bot, main_router, users_collection, logger
+from handlers import flood_handler
+from main import admin_users, bot, users_collection, logger, admin_check
+
+router = Router(name='main_handlers')
 
 command_list = {
     "start": "Начало работы",
@@ -68,7 +66,7 @@ photo_ids = {
 }
 
 
-@main_router.message(CommandStart())
+@router.message(CommandStart())
 async def start_handler(msg: Message):
     await _save_user_info(msg)
 
@@ -111,18 +109,20 @@ async def _save_user_info(msg: Message):
         "last_name": msg.from_user.last_name if msg.from_user.last_name is not None else "",
         "date": str(datetime.now())
     }
-    # Проверка, существует ли пользователь
+
+    user = (msg.from_user.username, msg.from_user.id)
+
     if await users_collection.find_one({'tg_id': msg.from_user.id}) is None:
         try:
             await users_collection.insert_one(user_data)
-            logger.info(f'Пользоваель @{msg.from_user.username} {msg.from_user.id} сохранён!')
+            logger.info(f'Пользоваель @{user[0]} {user[1]} сохранён!')
         except:
-            logger.info('Ошибка при добавлении пользователя в БД')
+            logger.info(f'Ошибка при добавлении пользователя @{user[0]} {user[1]} в БД')
     else:
-        logger.info(f'Пользователь @{msg.from_user.username} {msg.from_user.id} уже есть в базе данных')
+        logger.info(f'Пользователь @{user[0]} {user[1]} уже есть в базе данных')
 
 
-@main_router.callback_query(F.data.startswith('get_order'))
+@router.callback_query(F.data.startswith('get_order'))
 async def get_order_callback_query(call: CallbackQuery):
     await call.answer()
 
@@ -146,7 +146,7 @@ async def get_order_callback_query(call: CallbackQuery):
         )
 
 
-@main_router.callback_query(F.data.startswith('create_order_'))
+@router.callback_query(F.data.startswith('create_order_'))
 async def get_order_callback_query(call: CallbackQuery):
     await call.answer()
 
@@ -164,29 +164,10 @@ async def get_order_callback_query(call: CallbackQuery):
         )
 
 
-# TODO(mzln)
-@main_router.message(Command("push_post"))
-async def push_post_handler(msg: Message):
-    if admin_check(msg.from_user.id):
-        await msg.reply("Данная фича в разработке 🛠️")
-    else:
-        await flood_handler(msg)
-
-
-@main_router.message(Command("admin_list"))
+@router.message(Command("admin_list"))
 async def admin_list_handler(msg: Message):
     if admin_check(msg.from_user.id):
         msg_admin_list = "\n".join(f"@{_}" for _ in admin_users)
         await msg.reply(f"Вот список админов:\n{msg_admin_list}")
     else:
-        await flood_handler(msg)
-
-
-# Flood handler
-@main_router.message()
-async def flood_handler(msg: Message):
-    await msg.answer(base_msgs["flood"])
-
-
-def admin_check(user_id: int):
-    return user_id in admin_users.values()
+        await flood_handler.flood_handler(msg)
