@@ -106,7 +106,7 @@ async def broadcast_users(call: CallbackQuery, post_data):
     user_counter = 0
 
     for user in users:
-        main.logger.info(user_counter + ' Broadcast ' + user["username"] + ' ' + user["chat_id"])
+        # main.logger.info("[" + str(user_counter) + "]" + ' Broadcast ' + user["username"] + ' ' + user["chat_id"])
 
         if post_data["post_type"] == "photo":
             await main.bot.send_photo(
