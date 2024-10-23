@@ -8,6 +8,7 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InputMediaPhoto
 from aiogram.utils.chat_action import ChatActionSender
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.utils.serialization import deserialize_telegram_object_to_python
 
 from handlers import main_handler
 import main
@@ -36,8 +37,11 @@ async def push_post_waiting_handler(msg: Message, state: FSMContext):
         await flood_handler.flood_handler(msg)
         return
 
-    post_photo_id = msg.photo[-1].file_id if len(msg.photo) >= 0 else None
+    post_photo_id = None
     post_text = None
+
+    if msg.photo is not None and len(msg.photo) >= 0:
+        post_photo_id = msg.photo[-1].file_id
 
     if msg.text is not None:
         post_text = msg.text
@@ -49,7 +53,11 @@ async def push_post_waiting_handler(msg: Message, state: FSMContext):
     keyboard = InlineKeyboardBuilder()
     button1 = InlineKeyboardButton(callback_data="push_post_admins", text="Тест для админов")
     button2 = InlineKeyboardButton(callback_data="push_post_users", text="Отправить юзерам")
+    button3 = InlineKeyboardButton(callback_data="push_post_cancel", text="Отмена")
     keyboard.row(button1, button2)
+    keyboard.row(button3)
+
+    print(msg.entities)
 
     if post_photo_id is not None:
         await state.update_data(post_type="photo")
@@ -58,14 +66,16 @@ async def push_post_waiting_handler(msg: Message, state: FSMContext):
             chat_id=msg.chat.id,
             photo=post_photo_id,
             caption=post_text,
-            reply_markup=keyboard.as_markup()
+            reply_markup=keyboard.as_markup(),
+            entities=msg.entities
         )
     else:
         await state.update_data(post_type="text")
 
         await msg.answer(
             text=post_text,
-            reply_markup=keyboard.as_markup()
+            entities=msg.entities,
+            reply_markup=keyboard.as_markup(),
         )
 
 
@@ -75,6 +85,11 @@ async def push_post_sending_handler(call: CallbackQuery, state: FSMContext):
 
     push_target = call.data.split("_")[-1]
     post_data = await state.get_data()
+
+    if push_target == "cancel":
+        await state.clear()
+        await main.bot.send_message(chat_id=call.message.chat.id, text="Отправка отменена")
+        return
 
     match push_target:
         case "admins":
@@ -98,11 +113,13 @@ async def broadcast_users(call: CallbackQuery, post_data):
                 chat_id=user["chat_id"],
                 photo=post_data["post_photo_id"],
                 caption=post_data["post_text"],
+                entities=call.message.entities
             )
         elif post_data["post_type"] == "text":
             await main.bot.send_message(
                 chat_id=user["chat_id"],
                 text=post_data["post_text"],
+                entities=call.message.entities
             )
         user_counter += 1
 
@@ -114,10 +131,13 @@ async def test_post_for_admins(call: CallbackQuery, post_data):
                 chat_id=admin[1],
                 photo=post_data["post_photo_id"],
                 caption=post_data["post_text"],
+                entities=call.message.entities
             )
         elif post_data["post_type"] == "text":
-            await call.answer(
+            await main.bot.send_message(
+                chat_id=admin[1],
                 text=post_data["post_text"],
+                entities=call.message.entities
             )
 
 

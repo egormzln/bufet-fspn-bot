@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 config = load_config()
 
-bot = Bot(token=config.tg_bot.token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+bot = Bot(token=config.tg_bot.token, default=DefaultBotProperties())
 
 # MONGO_USER = os.getenv('MONGO_INITDB_ROOT_USERNAME')
 # MONGO_PASSWORD = os.getenv('MONGO_INITDB_ROOT_PASSWORD')
