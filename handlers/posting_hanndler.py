@@ -142,6 +142,7 @@ async def test_post_for_admins(call: CallbackQuery, post_data):
                 entities=call.message.entities,
                 disable_web_page_preview=True
             )
+        main.logger.info(f'Successfully notified @{admin[0]} {admin[1]}')
 
 
 async def get_all_users():
