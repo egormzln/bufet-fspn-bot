@@ -124,7 +124,7 @@ async def broadcast_users(call: CallbackQuery, post_data):
     ]
 
     for user in users:
-        if user["chat_id"] not in notified_users and user["username"] == "egormzln":
+        if user["chat_id"] not in notified_users:
             try:
                 if post_data["post_type"] == "photo":
                     await main.bot.send_photo(
@@ -148,7 +148,7 @@ async def broadcast_users(call: CallbackQuery, post_data):
                 print(f'[{user_counter}] Bot blocked for {user["chat_id"]}')
             await asyncio.sleep(1)
         else:
-            print(f'[{user_counter}] Notified user {user["chat_id"]}')
+            print(f'[{user_counter}] Already notified {user["chat_id"]}')
         user_counter += 1
 
 
