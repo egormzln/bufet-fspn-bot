@@ -26,8 +26,8 @@ bot = Bot(token=config.tg_bot.token, default=DefaultBotProperties())
 admin_users = {
     # <username>: <id>
     "egormzln": 720106691,
-    "katesproduction": 881225912,
-    "mlnmql": 1436567716
+    # "katesproduction": 881225912,
+    # "mlnmql": 1436567716
 }
 
 try:
