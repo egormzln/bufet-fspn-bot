@@ -106,28 +106,50 @@ async def broadcast_users(call: CallbackQuery, post_data):
 
     user_counter = 0
 
-    for user in users:
-        if post_data["post_type"] == "photo":
-            await main.bot.send_photo(
-                chat_id=user["chat_id"],
-                photo=post_data["post_photo_id"],
-                caption=post_data["post_text"],
-                caption_entities=call.message.caption_entities
-            )
-        elif post_data["post_type"] == "text":
-            await main.bot.send_message(
-                chat_id=user["chat_id"],
-                text=post_data["post_text"],
-                entities=call.message.entities,
-                disable_web_page_preview=True
-            )
-        try:
-            main.logger.info(f'[{user_counter}] Successfully notified @{user["username"]} {user["chat_id"]}')
-        except:
-            print(f'[{user_counter}] Successfully notified')
+    notified_users = [
+        720106691,
+        881225912,
+        347045610,
+        5320713079,
+        746416208,
+        1697868011,
+        1739025468,
+        540513072,
+        1120083593,
+        921152617,
+        848344553,
+        980706199,
+        1313538271,
+        976961675
+    ]
 
+    for user in users:
+        if user["chat_id"] not in notified_users and user["username"] == "egormzln":
+            try:
+                if post_data["post_type"] == "photo":
+                    await main.bot.send_photo(
+                        chat_id=user["chat_id"],
+                        photo=post_data["post_photo_id"],
+                        caption=post_data["post_text"],
+                        caption_entities=call.message.caption_entities
+                    )
+                elif post_data["post_type"] == "text":
+                    await main.bot.send_message(
+                        chat_id=user["chat_id"],
+                        text=post_data["post_text"],
+                        entities=call.message.entities,
+                        disable_web_page_preview=True
+                    )
+                try:
+                    main.logger.info(f'[{user_counter}] Successfully notified @{user["username"]} {user["chat_id"]}')
+                except:
+                    print(f'[{user_counter}] Successfully notified')
+            except:
+                print(f'[{user_counter}] Bot blocked for {user["chat_id"]}')
+            await asyncio.sleep(1)
+        else:
+            print(f'[{user_counter}] Notified user {user["chat_id"]}')
         user_counter += 1
-        await asyncio.sleep(1)
 
 
 async def test_post_for_admins(call: CallbackQuery, post_data):
