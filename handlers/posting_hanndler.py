@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 
 from aiogram import F
@@ -67,7 +68,7 @@ async def push_post_waiting_handler(msg: Message, state: FSMContext):
             photo=post_photo_id,
             caption=post_text,
             reply_markup=keyboard.as_markup(),
-            entities=msg.entities
+            caption_entities=msg.caption_entities
         )
     else:
         await state.update_data(post_type="text")
@@ -86,11 +87,6 @@ async def push_post_sending_handler(call: CallbackQuery, state: FSMContext):
     push_target = call.data.split("_")[-1]
     post_data = await state.get_data()
 
-    if push_target == "cancel":
-        await state.clear()
-        await main.bot.send_message(chat_id=call.message.chat.id, text="Отправка отменена")
-        return
-
     match push_target:
         case "admins":
             main.logger.info("Admins broadcast...")
@@ -98,6 +94,11 @@ async def push_post_sending_handler(call: CallbackQuery, state: FSMContext):
         case "users":
             main.logger.info("Users broadcast...")
             await broadcast_users(call, post_data)
+        case "cancel":
+            await state.clear()
+            await main.bot.send_message(chat_id=call.message.chat.id, text="Отправка отменена")
+
+    await call.message.delete()
 
 
 async def broadcast_users(call: CallbackQuery, post_data):
@@ -106,22 +107,23 @@ async def broadcast_users(call: CallbackQuery, post_data):
     user_counter = 0
 
     for user in users:
-        # main.logger.info("[" + str(user_counter) + "]" + ' Broadcast ' + user["username"] + ' ' + user["chat_id"])
-
         if post_data["post_type"] == "photo":
             await main.bot.send_photo(
                 chat_id=user["chat_id"],
                 photo=post_data["post_photo_id"],
                 caption=post_data["post_text"],
-                entities=call.message.entities
+                caption_entities=call.message.caption_entities
             )
         elif post_data["post_type"] == "text":
             await main.bot.send_message(
                 chat_id=user["chat_id"],
                 text=post_data["post_text"],
-                entities=call.message.entities
+                entities=call.message.entities,
+                disable_web_page_preview=True
             )
+        main.logger.info(f'[{user_counter}] Successfully notified @{user["username"]} {user["chat_id"]}')
         user_counter += 1
+        await asyncio.sleep(1)
 
 
 async def test_post_for_admins(call: CallbackQuery, post_data):
@@ -131,13 +133,14 @@ async def test_post_for_admins(call: CallbackQuery, post_data):
                 chat_id=admin[1],
                 photo=post_data["post_photo_id"],
                 caption=post_data["post_text"],
-                entities=call.message.entities
+                caption_entities=call.message.caption_entities
             )
         elif post_data["post_type"] == "text":
             await main.bot.send_message(
                 chat_id=admin[1],
                 text=post_data["post_text"],
-                entities=call.message.entities
+                entities=call.message.entities,
+                disable_web_page_preview=True
             )
 
 
