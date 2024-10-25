@@ -121,7 +121,11 @@ async def broadcast_users(call: CallbackQuery, post_data):
                 entities=call.message.entities,
                 disable_web_page_preview=True
             )
-        main.logger.info(f'[{user_counter}] Successfully notified @{user["username"]} {user["chat_id"]}')
+        try:
+            main.logger.info(f'[{user_counter}] Successfully notified @{user["username"]} {user["chat_id"]}')
+        except:
+            print(f'[{user_counter}] Successfully notified')
+
         user_counter += 1
         await asyncio.sleep(1)
 
