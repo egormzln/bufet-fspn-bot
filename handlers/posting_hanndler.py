@@ -91,9 +91,13 @@ async def push_post_sending_handler(call: CallbackQuery, state: FSMContext):
         case "admins":
             main.logger.info("Admins broadcast...")
             await test_post_for_admins(call, post_data)
+            await state.clear()
+            await main.bot.send_message(chat_id=call.message.chat.id, text="Отправка звершена")
         case "users":
             main.logger.info("Users broadcast...")
             await broadcast_users(call, post_data)
+            await state.clear()
+            await main.bot.send_message(chat_id=call.message.chat.id, text="Отправка звершена")
         case "cancel":
             await state.clear()
             await main.bot.send_message(chat_id=call.message.chat.id, text="Отправка отменена")
@@ -106,22 +110,7 @@ async def broadcast_users(call: CallbackQuery, post_data):
 
     user_counter = 0
 
-    notified_users = [
-        720106691,
-        881225912,
-        347045610,
-        5320713079,
-        746416208,
-        1697868011,
-        1739025468,
-        540513072,
-        1120083593,
-        921152617,
-        848344553,
-        980706199,
-        1313538271,
-        976961675
-    ]
+    notified_users = []
 
     for user in users:
         if user["chat_id"] not in notified_users:

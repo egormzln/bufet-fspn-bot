@@ -16,22 +16,12 @@ config = load_config()
 
 bot = Bot(token=config.tg_bot.token, default=DefaultBotProperties())
 
-# MONGO_USER = os.getenv('MONGO_INITDB_ROOT_USERNAME')
-# MONGO_PASSWORD = os.getenv('MONGO_INITDB_ROOT_PASSWORD')
-# MONGO_DB_NAME = os.getenv('MONGO_DB_NAME')
-#
-# # MongoDB connection URI
-# mongo_uri = f"mongodb://{MONGO_USER}:{MONGO_PASSWORD}@mongodb:27017/{MONGO_DB_NAME}"
-
 admin_users = {
-    # <username>: <id>
     "egormzln": 720106691,
-    # "katesproduction": 881225912,
-    # "mlnmql": 1436567716
 }
 
 try:
-    db_client = motor.motor_asyncio.AsyncIOMotorClient("localhost", 27017)
+    db_client = motor.motor_asyncio.AsyncIOMotorClient(config.mongo_uri)
     bot_db = db_client["bufet_fspn"]
     users_collection = bot_db["users"]
 except:
