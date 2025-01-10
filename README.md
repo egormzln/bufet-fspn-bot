@@ -16,3 +16,4 @@
 - aiogram 3.13.1
 - motor 3.6.0
 - MongoDB 4.4.7
+- Docker (compose)
